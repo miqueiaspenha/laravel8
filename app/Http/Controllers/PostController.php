@@ -6,6 +6,8 @@ use App\Http\Requests\StorePost;
 use App\Http\Requests\UpdatePost;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
@@ -22,8 +24,18 @@ class PostController extends Controller
 
     public function store(StorePost $request)
     {
-        Post::create($request->all());
-        return redirect()->route('posts.index');
+        $data = $request->all();
+
+        if ($request->image->isValid()) {
+            $fileName = Str::of($request->title)->slug('-') . '.' . $request->image->getClientOriginalExtension();
+            $image = $request->image->storeAs('posts', $fileName);
+            $data['image'] = $image;
+        }
+
+        Post::create($data);
+        return redirect()
+            ->route('posts.index')
+            ->with('message', 'Post criado com sucesso');
     }
 
     public function show($id)
@@ -48,9 +60,21 @@ class PostController extends Controller
             return redirect()->back();
 
         $data = $request->all();
+
+        if ($request->image && $request->image->isValid()) {
+            if (Storage::exists($post->image))
+                Storage::delete($post->image);
+
+            $fileName = Str::of($request->title)->slug('-') . '.' . $request->image->getClientOriginalExtension();
+            $image = $request->image->storeAs('posts', $fileName);
+            $data['image'] = $image;
+        }
+
         $post->update($data);
 
-        return redirect()->route('posts.index');
+        return redirect()
+            ->route('posts.index')
+            ->with('message', 'Post atualizado com sucesso');
     }
 
     public function destroy($id)
@@ -58,7 +82,10 @@ class PostController extends Controller
         if (!$post = Post::find($id))
             return redirect()->route('posts.index');
 
+        if (Storage::exists($post->image))
+            Storage::delete($post->image);
         $post->delete();
+
         return redirect()->route('posts.index')
             ->with('message', 'Post deletado com sucesso');
     }

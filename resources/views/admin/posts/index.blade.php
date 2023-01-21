@@ -18,6 +18,7 @@
     <h1>Posts</h1>
     @foreach ($posts as $post)
         <p>
+            <img src="{{ url('storage/' . $post->image) }}" alt="{{ $post->title }}" style="max-width: 100px">
             {{ $post->title }}
             [ <a href="{{ route('posts.show', ['id' => $post->id]) }}">Ver</a> |
             <a href="{{ route('posts.edit', ['id' => $post->id]) }}">Editar</a> ]

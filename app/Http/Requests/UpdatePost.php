@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdatePost extends FormRequest
@@ -30,9 +31,10 @@ class UpdatePost extends FormRequest
                 'required',
                 'min:3',
                 'max:160',
-                "unique:posts,title,{$id},id",
+                //"unique:posts,title,{$id},id",
+                Rule::unique('posts')->ignore($id)
             ],
-            'image' => ['required', 'image'],
+            'image' => ['nullable', 'image'],
             'content' => [
                 'nullable',
                 'min:5',
